@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-dp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: health-app
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: health-app
+    spec:
+      containers:
+      - name: health-app
+        image: xost/otus-task-2:latest
+        ports:
+          - name: web
+            containerPort: 8000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: health-service
+spec:
+  selector:
+    app: health-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: health-ingress
+spec:
+  rules:
+  - host: arch.homework
+    http:
+      paths:
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: health-service
+            port:
+              number: 80
+  ingressClassName: nginx
